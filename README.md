@@ -13,7 +13,7 @@ A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and di
 
 ## How It Works
 
-1. **Interception**: The mod patches `TeamCherry.Localization.Language.Get(string key, string sheet)` using Harmony
+1. **Interception**: The mod patches `TeamCherry.Localization.Language.Get(string key, string sheetTitle)` using Harmony
 2. **Capture**: When the game requests an English string, the mod captures it
 3. **Translation Fetch**: The mod temporarily switches to `ru-RU` locale to fetch the Russian translation
 4. **Display**: Both strings are displayed on screen for 6 seconds
@@ -96,7 +96,7 @@ The mod only processes strings from these sheets to reduce noise:
 - **Language Switching**: Temporary locale changes with restoration
 
 ### API Usage
-- `Language.Get(key, sheet)` - Target method for interception
+- `Language.Get(key, sheetTitle)` - Target method for interception
 - `Language.CurrentLanguage()` - Get current language code
 - `Language.SwitchLanguage(LanguageCode)` - Change active language
 

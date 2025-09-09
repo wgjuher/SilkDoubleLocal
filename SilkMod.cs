@@ -98,12 +98,12 @@ public static class LanguageGetPatch
 {
     private static ManualLogSource Logger => SilkMod.logger;
     
-    static void Postfix(string key, string sheet, ref string __result)
+    static void Postfix(string key, string sheetTitle, ref string __result)
     {
         try
         {
             // Filter to only relevant sheets to reduce noise
-            if (sheet != "Dialogue" && sheet != "UI") return;
+            if (sheetTitle != "Dialogue" && sheetTitle != "UI") return;
             
             // Skip empty or null results
             if (string.IsNullOrEmpty(__result)) return;
@@ -111,7 +111,7 @@ public static class LanguageGetPatch
             var englishText = __result;
             
             // Fetch Russian translation
-            string russianText = GetRussianTranslation(key, sheet);
+            string russianText = GetRussianTranslation(key, sheetTitle);
             
             // Only capture if we got a valid Russian translation
             if (!string.IsNullOrEmpty(russianText) && russianText != englishText)
@@ -125,7 +125,7 @@ public static class LanguageGetPatch
         }
     }
     
-    private static string GetRussianTranslation(string key, string sheet)
+    private static string GetRussianTranslation(string key, string sheetTitle)
     {
         LanguageCode originalLanguage = LanguageCode.EN;
         try
@@ -137,13 +137,13 @@ public static class LanguageGetPatch
             Language.SwitchLanguage(LanguageCode.RU);
             
             // Get Russian translation
-            string russianText = Language.Get(key, sheet);
+            string russianText = Language.Get(key, sheetTitle);
             
             return russianText ?? "<перевод не найден>";
         }
         catch (Exception ex)
         {
-            Logger?.LogWarning($"Failed to get Russian translation for {sheet}.{key}: {ex.Message}");
+            Logger?.LogWarning($"Failed to get Russian translation for {sheetTitle}.{key}: {ex.Message}");
             return "<перевод не найден>";
         }
         finally
