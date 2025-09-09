@@ -10,6 +10,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <OutputPath>output\</OutputPath>
     <RestoreAdditionalProjectSources>
         https://nuget.bepinex.dev/v3/index.json
     </RestoreAdditionalProjectSources>
@@ -41,7 +42,7 @@
       <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/plugins/$(TargetName)" />
 
       <PropertyGroup>
-          <ExportFolder>bin/Publish</ExportFolder>
+          <ExportFolder>output/Publish</ExportFolder>
       </PropertyGroup>
       
       <RemoveDir Directories="$(IntermediateOutputPath)/archive"/>
