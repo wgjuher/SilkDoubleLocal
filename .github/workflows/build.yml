@@ -30,9 +30,6 @@ jobs:
       matrix:
         second_language:
           - ${{ github.event.inputs.second_language || 'RU' }}
-          # For automatic builds (push/PR), also build common languages
-          - ${{ github.event_name != 'workflow_dispatch' && 'DE' || '' }}
-          - ${{ github.event_name != 'workflow_dispatch' && 'FR' || '' }}
         exclude:
           - second_language: ''
     
