@@ -16,6 +16,9 @@
     <SecondLanguage Condition="'$(SecondLanguage)' == ''">RU</SecondLanguage>
     <SecondLanguageCode Condition="'$(SecondLanguageCode)' == ''">LanguageCode.RU</SecondLanguageCode>
     <SecondLanguageName Condition="'$(SecondLanguageName)' == ''">Russian</SecondLanguageName>
+    
+    <!-- Configurable logging settings -->
+    <EnableLogging Condition="'$(EnableLogging)' == ''">false</EnableLogging>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -26,6 +29,7 @@
     
     <!-- Define constants for conditional compilation -->
     <DefineConstants>$(DefineConstants);SECOND_LANGUAGE_$(SecondLanguage)</DefineConstants>
+    <DefineConstants Condition="'$(EnableLogging)' == 'true'">$(DefineConstants);ENABLE_LOGGING</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

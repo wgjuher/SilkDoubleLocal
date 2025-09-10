@@ -6,10 +6,11 @@ A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and di
 
 - **In-Game Text Concatenation**: Modifies game text to show both English and second language translations inline
 - **Configurable Second Language**: Build-time configuration for multiple language support (RU, DE, FR, ES, IT, PT, JA, KO, ZH)
+- **Configurable Logging**: Build-time flag to enable/disable all console logging (disabled by default for performance)
 - **Harmony Patching**: Intercepts `Language.Get()` calls to capture and modify localized strings
 - **Smart Filtering**: Processes specific content types with configurable sheet filtering
 - **Delayed Patching**: Waits for game initialization before applying patches for stability
-- **File Logging**: Saves translation pairs to a timestamped log file
+- **Console Logging**: Detailed logging to BepInEx console (when logging enabled)
 - **Page-Aware Processing**: Handles multi-page dialogue with proper formatting
 - **Error Handling**: Robust error handling with automatic language restoration
 
@@ -20,7 +21,7 @@ A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and di
 3. **Translation Fetch**: Temporarily switches to configured second language locale to fetch translations
 4. **Text Concatenation**: Combines English and second language text with `<br>` separator
 5. **In-Game Display**: Modified text appears directly in game dialogue and UI
-6. **Logging**: Translation pairs are logged to console and file with timestamps
+6. **Logging**: Translation pairs are logged to BepInEx console (when enabled)
 
 ## Installation
 
@@ -48,6 +49,16 @@ dotnet build --configuration Release
 dotnet build --configuration Release -p:SecondLanguage=DE
 ```
 
+4. Build with logging enabled:
+```bash
+dotnet build --configuration Release -p:EnableLogging=true
+```
+
+5. Build with both custom language and logging:
+```bash
+dotnet build --configuration Release -p:SecondLanguage=DE -p:EnableLogging=true
+```
+
 **Supported Languages:**
 - `RU` - Russian (default)
 - `DE` - German
@@ -58,6 +69,10 @@ dotnet build --configuration Release -p:SecondLanguage=DE
 - `JA` - Japanese
 - `KO` - Korean
 - `ZH` - Chinese
+
+**Logging Options:**
+- `EnableLogging=false` - No logging (default, best performance)
+- `EnableLogging=true` - Console logging to BepInEx log
 
 
 ### Dependencies
@@ -76,23 +91,30 @@ The project includes GitHub Actions workflow with the following features:
 ## Configuration
 
 ### Build-Time Configuration
-Configure the second language when building:
+Configure the second language and logging when building:
 
 ```bash
-# Command line
+# Second language only (no logging)
 dotnet build -p:SecondLanguage=DE
 
-# Or set environment variable
+# Enable logging with default language (Russian)
+dotnet build -p:EnableLogging=true
+
+# Both custom language and logging
+dotnet build -p:SecondLanguage=DE -p:EnableLogging=true
+
+# Using environment variables
 export SecondLanguage=FR
+export EnableLogging=true
 dotnet build
 ```
 
 ### Runtime Configuration
 The mod includes several configurable options in the source code:
 
-- `enableFileLogging`: Whether to save translations to file (default: true)
-- `logFileName`: Name of the log file (default: "translation_pairs.txt")
 - `dialogSheets`: Array of sheet names to process (currently: "Bonebottom")
+
+**Note**: Console logging is disabled by default for optimal performance. Enable it only when needed for debugging or development.
 
 ## Display Format
 
@@ -113,16 +135,19 @@ My name Vlad.<br>Mein Name ist Vlad.
 Page 1 English<br>Page 1 Second Language<page>Page 2 English<br>Page 2 Second Language
 ```
 
-## File Logging
+## Console Logging
 
-When enabled, translation pairs are saved to `BepInEx/translation_pairs.txt` with detailed context:
+When logging is enabled via `EnableLogging=true`, translation pairs are logged to the BepInEx console:
 
 ```
-2024-01-01 12:00:00 | Bonebottom.GREETING_KEY | EN: Hello there! | SECOND: Привет!
-2024-01-01 12:00:05 | UI.SETTINGS_DESC | EN: Game settings | SECOND: Spieleinstellungen
+[Info   :   SilkMod] [TRANSLATION] Sheet: Bonebottom, Key: GREETING_KEY
+[Info   :   SilkMod] [TRANSLATION] EN: Hello there!
+[Info   :   SilkMod] [TRANSLATION] SECOND: Привет!
 ```
 
 The "SECOND" field contains the translation in whatever language was configured at build time.
+
+**Performance Note**: When logging is disabled (default), no console logging occurs, providing optimal game performance.
 
 ## Filtered Content
 
@@ -143,15 +168,20 @@ The mod uses smart filtering to process only relevant content:
 ## Troubleshooting
 
 ### No translations appearing in-game
-- Check BepInEx console for mod loading messages and "[TRANSLATION]" entries
+- If logging is enabled: Check BepInEx console for mod loading messages and "[TRANSLATION]" entries
 - Ensure the game has the configured second language localization files installed
 - Verify you're interacting with content from processed sheets (currently Bonebottom)
-- Check that delayed patching completed successfully (look for "Delayed Harmony patches applied successfully!")
+- If logging is enabled: Check that delayed patching completed successfully (look for "Delayed Harmony patches applied successfully!")
 
 ### Missing second language translations
 - Some keys may not have translations available in the configured language
 - The mod will show `<перевод не найден>` for missing translations
-- Check the log file for detailed translation attempts
+- If logging is enabled: Check the BepInEx console for detailed translation attempts
+
+### Performance Issues
+- If experiencing performance problems, ensure logging is disabled (default)
+- Logging adds overhead for console output operations
+- Only enable logging for debugging or development purposes
 
 ### Performance issues
 - The mod includes comprehensive error handling to prevent crashes
@@ -215,8 +245,12 @@ dotnet build -p:SecondLanguage=DE -p:SecondLanguageCode=LanguageCode.DE -p:Secon
 ### Runtime Configuration Options
 Modify these constants in `SilkMod.cs`:
 - `dialogSheets` - Array of sheet names to process
-- `enableFileLogging` - Enable/disable file logging
-- `logFileName` - Name of the log file
+- `enableFileLogging` - Controlled by `EnableLogging` build parameter (compile-time)
+- `logFileName` - Name of the log file (only used when logging enabled)
+
+**Build Parameters:**
+- `SecondLanguage` - Target language code (RU, DE, FR, ES, IT, PT, JA, KO, ZH)
+- `EnableLogging` - Enable all logging (true/false, default: false)
 
 ## Project Structure
 

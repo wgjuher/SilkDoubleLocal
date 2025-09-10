@@ -16,10 +16,6 @@ public class SilkMod : BaseUnityPlugin
     private static Harmony harmony = null!;
     public static bool patchesApplied = false;
     
-    // File logging settings
-    private static readonly bool enableFileLogging = true;
-    private static readonly string logFileName = "translation_pairs.txt";
-    private static string logFilePath = "";
     
     // Translation settings - Focus on Bonebottom dialog only
     private static readonly string[] dialogSheets = {
@@ -30,18 +26,14 @@ public class SilkMod : BaseUnityPlugin
     {
         logger = Logger;
         
-        // Initialize file logging path
-        if (enableFileLogging)
-        {
-            logFilePath = Path.Combine(Paths.BepInExRootPath, logFileName);
-            Logger.LogInfo($"Translation logging enabled. File: {logFilePath}");
-        }
         
         // Initialize Harmony but don't patch yet
         harmony = new Harmony(PluginInfo.PLUGIN_GUID);
         
+#if ENABLE_LOGGING
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} has loaded!");
         Logger.LogInfo("Starting delayed patching...");
+#endif
         
         // Start delayed patching coroutine
         StartCoroutine(DelayedPatchingCoroutine());
@@ -54,7 +46,9 @@ public class SilkMod : BaseUnityPlugin
     
     private IEnumerator DelayedPatchingCoroutine()
     {
+#if ENABLE_LOGGING
         Logger.LogInfo("Waiting for game to initialize...");
+#endif
         
         // Wait for a few seconds to let the game fully load
         yield return new WaitForSeconds(5f);
@@ -65,18 +59,28 @@ public class SilkMod : BaseUnityPlugin
             yield return new WaitForSeconds(1f);
         }
         
+#if ENABLE_LOGGING
         Logger.LogInfo($"Game scene loaded: {UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
+#endif
         
         // Now apply the patches
         try
         {
             harmony.PatchAll();
             patchesApplied = true;
+#if ENABLE_LOGGING
             Logger.LogInfo("Delayed Harmony patches applied successfully!");
+#endif
         }
-        catch (Exception ex)
+        catch (Exception
+#if ENABLE_LOGGING
+            ex
+#endif
+            )
         {
+#if ENABLE_LOGGING
             Logger.LogError($"Failed to apply delayed patches: {ex.Message}");
+#endif
         }
     }
     
@@ -90,35 +94,27 @@ public class SilkMod : BaseUnityPlugin
         // Skip if translations are identical (no actual translation occurred)
         if (english.Equals(secondLanguage, StringComparison.OrdinalIgnoreCase))
         {
+#if ENABLE_LOGGING
             logger?.LogDebug($"[TRANSLATION_SKIP] Identical text: {english}");
+#endif
             return;
         }
 
-        // Log the translation pair with context (for file logging only)
+#if ENABLE_LOGGING
+        // Log the translation pair with context
         logger?.LogInfo($"[TRANSLATION] Sheet: {sheetTitle}, Key: {key}");
         logger?.LogInfo($"[TRANSLATION] EN: {english}");
         logger?.LogInfo($"[TRANSLATION] SECOND: {secondLanguage}");
-
-        // Save to file if enabled (keep original format for logging)
-        if (enableFileLogging && !string.IsNullOrEmpty(logFilePath))
-        {
-            try
-            {
-                string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {sheetTitle}.{key} | EN: {english} | SECOND: {secondLanguage}\n";
-                File.AppendAllText(logFilePath, logEntry);
-            }
-            catch (Exception ex)
-            {
-                logger?.LogWarning($"Failed to write to log file: {ex.Message}");
-            }
-        }
+#endif
     }
 
 
     // Helper method to check if a sheet should be translated
-    public static bool ShouldTranslateSheet(string sheetTitle, string key = null)
+    public static bool ShouldTranslateSheet(string sheetTitle, string? key = null)
     {
+#if ENABLE_LOGGING
         logger?.LogInfo($"[TRANSLATION] Sheet: {sheetTitle}, Key: {key}");
+#endif
         if (string.IsNullOrEmpty(sheetTitle))
             return false;
     
@@ -171,13 +167,17 @@ public static class LanguageGetPatch
             // Check if we should translate this sheet
             if (!SilkMod.ShouldTranslateSheet(sheetTitle, key))
             {
+#if ENABLE_LOGGING
                 // Still log excluded strings but less verbosely
                 Logger?.LogDebug($"[STRING_INTERCEPT] Excluded Sheet: {sheetTitle}, Key: {key}");
+#endif
                 return;
             }
 
+#if ENABLE_LOGGING
             // Log string interception for all processed sheets
             Logger?.LogInfo($"[STRING_INTERCEPT] Sheet: {sheetTitle}, Key: {key}, Result: {__result}");
+#endif
 
             // Get second language translation
             string secondLanguageTranslation = GetSecondLanguageTranslation(key, sheetTitle);
@@ -197,17 +197,27 @@ public static class LanguageGetPatch
                 // Modify the actual result to return concatenated text
                 __result = concatenatedResult;
                 
+#if ENABLE_LOGGING
                 Logger?.LogInfo($"[CONCATENATED] Modified result with EN+SECOND concatenation");
+#endif
             }
             else
             {
+#if ENABLE_LOGGING
                 // Log when translation fails or is skipped
                 Logger?.LogDebug($"[TRANSLATION_SKIP] Sheet: {sheetTitle}, Key: {key}, Reason: {secondLanguageTranslation}");
+#endif
             }
         }
-        catch (Exception ex)
+        catch (Exception
+#if ENABLE_LOGGING
+            ex
+#endif
+            )
         {
+#if ENABLE_LOGGING
             Logger?.LogError($"Error in Language.Get patch: {ex.Message}");
+#endif
         }
     }
 
@@ -336,9 +346,15 @@ public static class LanguageGetPatch
 
             return secondLanguageText ?? "<перевод не найден>";
         }
-        catch (Exception ex)
+        catch (Exception
+#if ENABLE_LOGGING
+            ex
+#endif
+            )
         {
+#if ENABLE_LOGGING
             Logger?.LogWarning($"Failed to get second language translation for {sheetTitle}.{key}: {ex.Message}");
+#endif
             return "<перевод не найден>";
         }
         finally
@@ -351,9 +367,15 @@ public static class LanguageGetPatch
                     Language.SwitchLanguage(originalLanguage);
                 }
             }
-            catch (Exception ex)
+            catch (Exception
+#if ENABLE_LOGGING
+                ex
+#endif
+                )
             {
+#if ENABLE_LOGGING
                 Logger?.LogError($"Failed to restore language to {originalLanguage}: {ex.Message}");
+#endif
             }
             finally
             {
