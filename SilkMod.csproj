@@ -1,10 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- 
-  Imports silksong path properties only if present in order to allow CI builds. The file should be gitignored.
-  If you are checking out from git and need to create a new one, you can use `dotnet new silksongpath` to generate one.
-  -->
-  <Import Condition="Exists('SilksongPath.props')" Project="SilksongPath.props" />
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
@@ -35,14 +30,5 @@
     <PackageReference Include="Silksong.GameLibs" Version="1.0.1-silksong1.0.28324"/>
   </ItemGroup>
 
-  <Target Name="CopyMod" AfterTargets="PostBuildEvent" Condition="'$(SilksongFolder)' != ''">
-      <ItemGroup>
-          <Binaries Include="$(TargetPath)"/>
-          <Binaries Include="$(TargetDir)/$(TargetName).pdb"/>
-      </ItemGroup>
-
-      <!-- Copy to Silksong folder if path is set (but not to output folder) -->
-      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(SilksongFolder)/BepInEx/plugins/$(TargetName)" />
-  </Target>
 
 </Project>

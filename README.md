@@ -36,12 +36,12 @@ A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and di
 
 ### Local Development
 1. Clone the repository
-2. Create `SilksongPath.props` file (use `dotnet new silksongpath` if available)
-3. Build with:
+2. Build with:
 ```bash
 dotnet restore
 dotnet build --configuration Release
 ```
+
 
 ### Dependencies
 - .NET Standard 2.1
@@ -153,11 +153,10 @@ The mod uses smart filtering to process only relevant content:
 
 ### Setup
 1. Clone the repository
-2. Create `SilksongPath.props` with your Silksong installation path
-3. Open in Visual Studio 2022 or VS Code with C# extension
-4. Modify `SilkMod.cs` as needed
-5. Build with `dotnet build --configuration Release`
-6. Test in game (DLL auto-copies to game if `SilksongPath.props` is configured)
+2. Open in Visual Studio 2022 or VS Code with C# extension
+3. Modify `SilkMod.cs` as needed
+4. Build with `dotnet build --configuration Release`
+5. Manually copy `output/SilkMod.dll` to `BepInEx/plugins/SilkMod/`
 
 ### Key Methods
 - `DelayedPatchingCoroutine()` - Handles delayed initialization and patching
@@ -180,7 +179,6 @@ SilkMod/
 ├── SilkMod.cs              # Main mod implementation
 ├── SilkMod.csproj          # Project configuration with dependencies
 ├── SilkMod.sln             # Visual Studio solution file
-├── SilksongPath.props      # Local Silksong path (gitignored)
 ├── .github/workflows/      # CI/CD automation
 │   └── build.yml          # GitHub Actions build workflow
 ├── output/                 # Build output directory (gitignored)
