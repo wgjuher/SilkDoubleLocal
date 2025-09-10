@@ -11,6 +11,11 @@
     <RestoreAdditionalProjectSources>
         https://nuget.bepinex.dev/v3/index.json
     </RestoreAdditionalProjectSources>
+    
+    <!-- Configurable second language settings -->
+    <SecondLanguage Condition="'$(SecondLanguage)' == ''">RU</SecondLanguage>
+    <SecondLanguageCode Condition="'$(SecondLanguageCode)' == ''">LanguageCode.RU</SecondLanguageCode>
+    <SecondLanguageName Condition="'$(SecondLanguageName)' == ''">Russian</SecondLanguageName>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -18,6 +23,9 @@
     <BepInExPluginGuid>silkmod</BepInExPluginGuid>
     <BepInExPluginName>SilkMod</BepInExPluginName>
     <Version>0.1.0</Version>
+    
+    <!-- Define constants for conditional compilation -->
+    <DefineConstants>$(DefineConstants);SECOND_LANGUAGE_$(SecondLanguage)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

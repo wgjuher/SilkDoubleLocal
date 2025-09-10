@@ -1,10 +1,11 @@
 # SilkMod - Silksong Translation Display Mod
 
-A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and displays both English and Russian translations in-game by concatenating them directly into the game text.
+A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and displays both English and a configurable second language translations in-game by concatenating them directly into the game text.
 
 ## Features
 
-- **In-Game Text Concatenation**: Modifies game text to show both English and Russian translations inline
+- **In-Game Text Concatenation**: Modifies game text to show both English and second language translations inline
+- **Configurable Second Language**: Build-time configuration for multiple language support (RU, DE, FR, ES, IT, PT, JA, KO, ZH)
 - **Harmony Patching**: Intercepts `Language.Get()` calls to capture and modify localized strings
 - **Smart Filtering**: Processes specific content types with configurable sheet filtering
 - **Delayed Patching**: Waits for game initialization before applying patches for stability
@@ -16,8 +17,8 @@ A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and di
 
 1. **Delayed Initialization**: Waits 5 seconds and for scene loading before applying patches
 2. **Interception**: Patches `TeamCherry.Localization.Language.Get(string key, string sheetTitle)` using Harmony
-3. **Translation Fetch**: Temporarily switches to Russian locale to fetch translations
-4. **Text Concatenation**: Combines English and Russian text with `<br>` separator
+3. **Translation Fetch**: Temporarily switches to configured second language locale to fetch translations
+4. **Text Concatenation**: Combines English and second language text with `<br>` separator
 5. **In-Game Display**: Modified text appears directly in game dialogue and UI
 6. **Logging**: Translation pairs are logged to console and file with timestamps
 
@@ -36,11 +37,27 @@ A BepInEx mod for Hollow Knight: Silksong that intercepts English strings and di
 
 ### Local Development
 1. Clone the repository
-2. Build with:
+2. Build with default language (Russian):
 ```bash
 dotnet restore
 dotnet build --configuration Release
 ```
+
+3. Build with specific second language:
+```bash
+dotnet build --configuration Release -p:SecondLanguage=DE
+```
+
+**Supported Languages:**
+- `RU` - Russian (default)
+- `DE` - German
+- `FR` - French
+- `ES` - Spanish
+- `IT` - Italian
+- `PT` - Portuguese
+- `JA` - Japanese
+- `KO` - Korean
+- `ZH` - Chinese
 
 
 ### Dependencies
@@ -51,10 +68,26 @@ dotnet build --configuration Release
 - Silksong.GameLibs 1.0.1-silksong1.0.28324
 
 ### CI/CD
-The project includes GitHub Actions workflow that automatically builds the mod on push/PR to main branch.
+The project includes GitHub Actions workflow with the following features:
+- **Automatic Builds**: Builds multiple language variants on push/PR (RU, DE, FR by default)
+- **Manual Dispatch**: Trigger builds with custom language selection via GitHub Actions UI
+- **Artifact Upload**: Separate artifacts for each language variant (`SilkMod-{LANG}-dll`)
 
 ## Configuration
 
+### Build-Time Configuration
+Configure the second language when building:
+
+```bash
+# Command line
+dotnet build -p:SecondLanguage=DE
+
+# Or set environment variable
+export SecondLanguage=FR
+dotnet build
+```
+
+### Runtime Configuration
 The mod includes several configurable options in the source code:
 
 - `enableFileLogging`: Whether to save translations to file (default: true)
@@ -65,14 +98,19 @@ The mod includes several configurable options in the source code:
 
 Instead of overlay display, translations are concatenated directly into game text:
 
-**In-Game Text:**
+**In-Game Text (Russian example):**
 ```
 My name Vlad.<br>Меня зовут Влад.
 ```
 
+**In-Game Text (German example):**
+```
+My name Vlad.<br>Mein Name ist Vlad.
+```
+
 **Multi-page Dialogue:**
 ```
-Page 1 English<br>Page 1 Russian<page>Page 2 English<br>Page 2 Russian
+Page 1 English<br>Page 1 Second Language<page>Page 2 English<br>Page 2 Second Language
 ```
 
 ## File Logging
@@ -80,9 +118,11 @@ Page 1 English<br>Page 1 Russian<page>Page 2 English<br>Page 2 Russian
 When enabled, translation pairs are saved to `BepInEx/translation_pairs.txt` with detailed context:
 
 ```
-2024-01-01 12:00:00 | Bonebottom.GREETING_KEY | EN: Hello there! | RU: Привет!
-2024-01-01 12:00:05 | UI.SETTINGS_DESC | EN: Game settings | RU: Настройки игры
+2024-01-01 12:00:00 | Bonebottom.GREETING_KEY | EN: Hello there! | SECOND: Привет!
+2024-01-01 12:00:05 | UI.SETTINGS_DESC | EN: Game settings | SECOND: Spieleinstellungen
 ```
+
+The "SECOND" field contains the translation in whatever language was configured at build time.
 
 ## Filtered Content
 
@@ -104,12 +144,12 @@ The mod uses smart filtering to process only relevant content:
 
 ### No translations appearing in-game
 - Check BepInEx console for mod loading messages and "[TRANSLATION]" entries
-- Ensure the game has Russian localization files installed
+- Ensure the game has the configured second language localization files installed
 - Verify you're interacting with content from processed sheets (currently Bonebottom)
 - Check that delayed patching completed successfully (look for "Delayed Harmony patches applied successfully!")
 
-### Missing Russian translations
-- Some keys may not have Russian translations available
+### Missing second language translations
+- Some keys may not have translations available in the configured language
 - The mod will show `<перевод не найден>` for missing translations
 - Check the log file for detailed translation attempts
 
@@ -166,7 +206,13 @@ The mod uses smart filtering to process only relevant content:
 - `ConcatenateEnglishAndRussian()` - Combines EN/RU text with page-aware formatting
 - `SplitByPageTags()` - Handles multi-page dialogue parsing
 
-### Configuration Options
+### Build Configuration
+Set the second language at build time:
+```bash
+dotnet build -p:SecondLanguage=DE -p:SecondLanguageCode=LanguageCode.DE -p:SecondLanguageName=German
+```
+
+### Runtime Configuration Options
 Modify these constants in `SilkMod.cs`:
 - `dialogSheets` - Array of sheet names to process
 - `enableFileLogging` - Enable/disable file logging

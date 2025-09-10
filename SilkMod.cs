@@ -81,14 +81,14 @@ public class SilkMod : BaseUnityPlugin
     }
     
     
-    public static void CaptureTranslation(string english, string russian, string sheetTitle, string key)
+    public static void CaptureTranslation(string english, string secondLanguage, string sheetTitle, string key)
     {
         // Validate inputs
-        if (string.IsNullOrEmpty(english) || string.IsNullOrEmpty(russian))
+        if (string.IsNullOrEmpty(english) || string.IsNullOrEmpty(secondLanguage))
             return;
 
         // Skip if translations are identical (no actual translation occurred)
-        if (english.Equals(russian, StringComparison.OrdinalIgnoreCase))
+        if (english.Equals(secondLanguage, StringComparison.OrdinalIgnoreCase))
         {
             logger?.LogDebug($"[TRANSLATION_SKIP] Identical text: {english}");
             return;
@@ -97,14 +97,14 @@ public class SilkMod : BaseUnityPlugin
         // Log the translation pair with context (for file logging only)
         logger?.LogInfo($"[TRANSLATION] Sheet: {sheetTitle}, Key: {key}");
         logger?.LogInfo($"[TRANSLATION] EN: {english}");
-        logger?.LogInfo($"[TRANSLATION] RU: {russian}");
+        logger?.LogInfo($"[TRANSLATION] SECOND: {secondLanguage}");
 
         // Save to file if enabled (keep original format for logging)
         if (enableFileLogging && !string.IsNullOrEmpty(logFilePath))
         {
             try
             {
-                string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {sheetTitle}.{key} | EN: {english} | RU: {russian}\n";
+                string logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {sheetTitle}.{key} | EN: {english} | SECOND: {secondLanguage}\n";
                 File.AppendAllText(logFilePath, logEntry);
             }
             catch (Exception ex)
@@ -179,30 +179,30 @@ public static class LanguageGetPatch
             // Log string interception for all processed sheets
             Logger?.LogInfo($"[STRING_INTERCEPT] Sheet: {sheetTitle}, Key: {key}, Result: {__result}");
 
-            // Get Russian translation
-            string russianTranslation = GetRussianTranslation(key, sheetTitle);
+            // Get second language translation
+            string secondLanguageTranslation = GetSecondLanguageTranslation(key, sheetTitle);
             
-            // If we got a valid Russian translation, concatenate EN+RU and modify the result
-            if (!string.IsNullOrEmpty(russianTranslation) &&
-                russianTranslation != "<перевод не найден>" &&
-                russianTranslation != "<уже на русском>")
+            // If we got a valid second language translation, concatenate EN+SECOND and modify the result
+            if (!string.IsNullOrEmpty(secondLanguageTranslation) &&
+                secondLanguageTranslation != "<перевод не найден>" &&
+                secondLanguageTranslation != "<уже на втором языке>")
             {
-                // Create concatenated version with EN and RU text
-                string concatenatedResult = ConcatenateEnglishAndRussian(__result, russianTranslation);
+                // Create concatenated version with EN and second language text
+                string concatenatedResult = ConcatenateEnglishAndSecondLanguage(__result, secondLanguageTranslation);
                 
                 // Log the original translations for file logging
-                SilkMod.CaptureTranslation(__result, russianTranslation, sheetTitle, key);
+                SilkMod.CaptureTranslation(__result, secondLanguageTranslation, sheetTitle, key);
                 
                 
                 // Modify the actual result to return concatenated text
                 __result = concatenatedResult;
                 
-                Logger?.LogInfo($"[CONCATENATED] Modified result with EN+RU concatenation");
+                Logger?.LogInfo($"[CONCATENATED] Modified result with EN+SECOND concatenation");
             }
             else
             {
                 // Log when translation fails or is skipped
-                Logger?.LogDebug($"[TRANSLATION_SKIP] Sheet: {sheetTitle}, Key: {key}, Reason: {russianTranslation}");
+                Logger?.LogDebug($"[TRANSLATION_SKIP] Sheet: {sheetTitle}, Key: {key}, Reason: {secondLanguageTranslation}");
             }
         }
         catch (Exception ex)
@@ -211,22 +211,22 @@ public static class LanguageGetPatch
         }
     }
 
-    private static string ConcatenateEnglishAndRussian(string englishText, string russianText)
+    private static string ConcatenateEnglishAndSecondLanguage(string englishText, string secondLanguageText)
     {
-        if (string.IsNullOrEmpty(englishText) || string.IsNullOrEmpty(russianText))
+        if (string.IsNullOrEmpty(englishText) || string.IsNullOrEmpty(secondLanguageText))
             return englishText;
 
         // Split both texts by page tags
         string[] englishPages = SplitByPageTags(englishText);
-        string[] russianPages = SplitByPageTags(russianText);
+        string[] secondLanguagePages = SplitByPageTags(secondLanguageText);
         
         // If no pages found, treat as single page
         if (englishPages.Length == 0) englishPages = new string[] { englishText };
-        if (russianPages.Length == 0) russianPages = new string[] { russianText };
+        if (secondLanguagePages.Length == 0) secondLanguagePages = new string[] { secondLanguageText };
         
         // Build concatenated result
         var result = new System.Text.StringBuilder();
-        int maxPages = Math.Max(englishPages.Length, russianPages.Length);
+        int maxPages = Math.Max(englishPages.Length, secondLanguagePages.Length);
         
         for (int i = 0; i < maxPages; i++)
         {
@@ -236,22 +236,22 @@ public static class LanguageGetPatch
                 result.Append("<page>");
             }
             
-            // Get English and Russian text for this page
+            // Get English and second language text for this page
             string enPage = i < englishPages.Length ? englishPages[i].Trim() : "";
-            string ruPage = i < russianPages.Length ? russianPages[i].Trim() : "";
+            string secondPage = i < secondLanguagePages.Length ? secondLanguagePages[i].Trim() : "";
             
-            // Concatenate with \n\r separator
-            if (!string.IsNullOrEmpty(enPage) && !string.IsNullOrEmpty(ruPage))
+            // Concatenate with <br> separator
+            if (!string.IsNullOrEmpty(enPage) && !string.IsNullOrEmpty(secondPage))
             {
-                result.Append(enPage).Append("<br>").Append(ruPage);
+                result.Append(enPage).Append("<br>").Append(secondPage);
             }
             else if (!string.IsNullOrEmpty(enPage))
             {
                 result.Append(enPage);
             }
-            else if (!string.IsNullOrEmpty(ruPage))
+            else if (!string.IsNullOrEmpty(secondPage))
             {
-                result.Append(ruPage);
+                result.Append(secondPage);
             }
         }
         
@@ -276,9 +276,44 @@ public static class LanguageGetPatch
         return parts;
     }
 
-    private static string GetRussianTranslation(string key, string sheetTitle)
+    private static string GetSecondLanguageTranslation(string key, string sheetTitle)
     {
         LanguageCode originalLanguage = LanguageCode.EN;
+        
+        // Define the second language code at compile time based on build properties
+#if SECOND_LANGUAGE_RU
+        LanguageCode secondLanguageCode = LanguageCode.RU;
+        string alreadyInSecondLanguageMessage = "<уже на русском>";
+#elif SECOND_LANGUAGE_DE
+        LanguageCode secondLanguageCode = LanguageCode.DE;
+        string alreadyInSecondLanguageMessage = "<already in German>";
+#elif SECOND_LANGUAGE_FR
+        LanguageCode secondLanguageCode = LanguageCode.FR;
+        string alreadyInSecondLanguageMessage = "<already in French>";
+#elif SECOND_LANGUAGE_ES
+        LanguageCode secondLanguageCode = LanguageCode.ES;
+        string alreadyInSecondLanguageMessage = "<already in Spanish>";
+#elif SECOND_LANGUAGE_IT
+        LanguageCode secondLanguageCode = LanguageCode.IT;
+        string alreadyInSecondLanguageMessage = "<already in Italian>";
+#elif SECOND_LANGUAGE_PT
+        LanguageCode secondLanguageCode = LanguageCode.PT;
+        string alreadyInSecondLanguageMessage = "<already in Portuguese>";
+#elif SECOND_LANGUAGE_JA
+        LanguageCode secondLanguageCode = LanguageCode.JA;
+        string alreadyInSecondLanguageMessage = "<already in Japanese>";
+#elif SECOND_LANGUAGE_KO
+        LanguageCode secondLanguageCode = LanguageCode.KO;
+        string alreadyInSecondLanguageMessage = "<already in Korean>";
+#elif SECOND_LANGUAGE_ZH
+        LanguageCode secondLanguageCode = LanguageCode.ZH;
+        string alreadyInSecondLanguageMessage = "<already in Chinese>";
+#else
+        // Default to Russian if no specific language is defined
+        LanguageCode secondLanguageCode = LanguageCode.RU;
+        string alreadyInSecondLanguageMessage = "<уже на русском>";
+#endif
+
         try
         {
             // Set flag to prevent recursion
@@ -287,23 +322,23 @@ public static class LanguageGetPatch
             // Save current language
             originalLanguage = Language.CurrentLanguage();
 
-            // Skip if already in Russian to avoid unnecessary work
-            if (originalLanguage == LanguageCode.RU)
+            // Skip if already in second language to avoid unnecessary work
+            if (originalLanguage == secondLanguageCode)
             {
-                return "<уже на русском>";
+                return alreadyInSecondLanguageMessage;
             }
 
-            // Switch to Russian
-            Language.SwitchLanguage(LanguageCode.RU);
+            // Switch to second language
+            Language.SwitchLanguage(secondLanguageCode);
 
-            // Get Russian translation
-            string russianText = Language.Get(key, sheetTitle);
+            // Get second language translation
+            string secondLanguageText = Language.Get(key, sheetTitle);
 
-            return russianText ?? "<перевод не найден>";
+            return secondLanguageText ?? "<перевод не найден>";
         }
         catch (Exception ex)
         {
-            Logger?.LogWarning($"Failed to get Russian translation for {sheetTitle}.{key}: {ex.Message}");
+            Logger?.LogWarning($"Failed to get second language translation for {sheetTitle}.{key}: {ex.Message}");
             return "<перевод не найден>";
         }
         finally
@@ -311,7 +346,7 @@ public static class LanguageGetPatch
             // Always restore original language and clear flag
             try
             {
-                if (originalLanguage != LanguageCode.RU)
+                if (originalLanguage != secondLanguageCode)
                 {
                     Language.SwitchLanguage(originalLanguage);
                 }

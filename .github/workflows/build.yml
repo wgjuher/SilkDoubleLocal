@@ -6,10 +6,35 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      second_language:
+        description: 'Second language code (RU, DE, FR, ES, IT, PT, JA, KO, ZH)'
+        required: false
+        default: 'RU'
+        type: choice
+        options:
+        - RU
+        - DE
+        - FR
+        - ES
+        - IT
+        - PT
+        - JA
+        - KO
+        - ZH
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        second_language:
+          - ${{ github.event.inputs.second_language || 'RU' }}
+          # For automatic builds (push/PR), also build common languages
+          - ${{ github.event_name != 'workflow_dispatch' && 'DE' || '' }}
+          - ${{ github.event_name != 'workflow_dispatch' && 'FR' || '' }}
+        exclude:
+          - second_language: ''
     
     steps:
     - name: Checkout code
@@ -23,13 +48,13 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
       
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+    - name: Build with second language ${{ matrix.second_language }}
+      run: dotnet build --configuration Release --no-restore -p:SecondLanguage=${{ matrix.second_language }}
       
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: SilkMod-dll
+        name: SilkMod-${{ matrix.second_language }}-dll
         path: output/SilkMod.dll
         if-no-files-found: error
         retention-days: 30
