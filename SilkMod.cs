@@ -123,7 +123,7 @@ public class SilkMod : BaseUnityPlugin
             return false;
     
         // Exclude specific sheets entirely
-        string[] excludedSheets = { "MainMenu", "Prompts", "Titles" };
+        string[] excludedSheets = { "MainMenu", "Prompts", "Titles", "Map Zones" };
         
         foreach (string excludedSheet in excludedSheets)
         {
@@ -131,7 +131,7 @@ public class SilkMod : BaseUnityPlugin
                 return false;
         }
         
-        string[] descSheets = { "UI", "Quests" };
+        string[] descSheets = { "UI", "Quests", "Tools" };
         // Special handling for descSheets
         foreach (string sheet in descSheets)
         {
@@ -363,6 +363,7 @@ public static class LanguageGetPatch
     }
 
 }
+
 
 
 
