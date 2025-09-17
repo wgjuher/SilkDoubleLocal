@@ -16,12 +16,6 @@ public class SilkMod : BaseUnityPlugin
     private static Harmony harmony = null!;
     public static bool patchesApplied = false;
     
-    
-    // Translation settings - Focus on Bonebottom dialog only
-    private static readonly string[] dialogSheets = {
-        "Bonebottom" // Only translate Bonebottom dialog
-    };
-    
     private void Awake()
     {
         logger = Logger;
@@ -119,7 +113,7 @@ public class SilkMod : BaseUnityPlugin
             return false;
     
         // Exclude specific sheets entirely
-        string[] excludedSheets = { "MainMenu", "Prompts", "Titles", "Map Zones" };
+        string[] excludedSheets = { "MainMenu", "Prompts", "Titles", "Map Zones", "Fast Travel" };
         
         foreach (string excludedSheet in excludedSheets)
         {
@@ -385,6 +379,7 @@ public static class LanguageGetPatch
     }
 
 }
+
 
 
 
